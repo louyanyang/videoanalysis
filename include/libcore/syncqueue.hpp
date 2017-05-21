@@ -29,7 +29,7 @@ namespace ocean
 		public:
 			void put(const T& new_value)
 			{
-				boost::unique_lock(boost::mutex) lck(m_mtx);
+				boost::unique_lock<boost::mutex> lck(m_mtx);
 				m_cond_p.wait(lck, [this]{return m_queue.size() < m_max_size; });
 				m_queue.push_back(new_value);
 				m_cond_g.notify_one();
@@ -55,7 +55,7 @@ namespace ocean
 				return true;
 			}
 
-			T get() const
+			T get() 
 			{
 				boost::unique_lock<boost::mutex> lck(m_mtx);
 				m_cond_g.wait(lck, [this]{ return !m_queue.empty(); });
@@ -65,7 +65,7 @@ namespace ocean
 				return value;
 			}
 
-			bool try_get(T& value) const
+			bool try_get(T& value)
 			{
 				boost::unique_lock<boost::mutex> lck(m_mtx);
 				if (m_queue.empty())
@@ -77,7 +77,7 @@ namespace ocean
 			}
 
 			template<typename Rep, typename Period>
-			bool get_for(T& value) const
+			bool get_for(T& value)
 			{
 				boost::unique_lock<boost::mutex> lck(m_mtx);
 				if (!m_cond_g.wait_for(lck, boost::chrono::duration<Rep, period>, [this]{m_queue.size() <= m_max_size; }))

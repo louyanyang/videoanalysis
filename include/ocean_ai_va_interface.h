@@ -8,46 +8,49 @@ namespace ocean
 {
 	namespace ai
 	{
-
-		class Analyzer;
-
-		class EXPORTS_API VideoAnalysisInterface
+		namespace va
 		{
-			typedef boost::shared_ptr<Analyzer> analyzer_type;
+			class Analyzer;
 
-		public:
-			VideoAnalysisInterface(const int& channel_id,
-				                   const int& device_id,
-								   const InitParams& init_params,
-								   const VideoAnalysisResultCallback& callback);
-			~VideoAnalysisInterface();
-		public:
+			class EXPORTS_API VideoAnalysisInterface
+			{
+				typedef boost::shared_ptr<Analyzer> analyzer_type;
 
-			STATUS PushFrame(const boost::uint64_t& time_stamp,
-				             const cv::Mat& frame,
-							 const VideoAnalysisResultCallback& callback = 0);
+			public:
+				VideoAnalysisInterface(const int& channel_id,
+					const int& device_id,
+					const InitParams& init_params,
+					const VideoAnalysisResultCallback& callback);
+				~VideoAnalysisInterface();
+			public:
 
-			STATUS PushFrame(const boost::uint64_t& time_stamp,
-				             const cv::gpu::GpuMat& frame,
-							 const VideoAnalysisResultCallback& callback = 0);
+				STATUS PushFrame(const boost::uint64_t& time_stamp,
+					const cv::Mat& frame,
+					const VideoAnalysisResultCallback& callback = 0);
 
-		private:
+				STATUS PushFrame(const boost::uint64_t& time_stamp,
+					const cv::gpu::GpuMat& frame,
+					const VideoAnalysisResultCallback& callback = 0);
 
-			analyzer_type m_analyzer;
+			private:
 
-			const TaskType m_task_type;
-			const int m_channel_id;
-			const int m_device_id;
+				analyzer_type m_impl;
 
-		};
+				const TaskType m_task_type;
+				const int m_channel_id;
+				const int m_device_id;
+
+			};
 
 
-		EXPORTS_API std::string GetVersion();
-		EXPORTS_API void GlobalInit(const std::string& path);
-		EXPORTS_API void GlobalRelease();
+			EXPORTS_API std::string GetVersion();
+			EXPORTS_API void GlobalInit(const std::string& path);
+			EXPORTS_API void GlobalRelease();
 
-	}
-}
+
+		}/*va*/
+	}/*ai*/
+}/*ocean*/
 
 
 

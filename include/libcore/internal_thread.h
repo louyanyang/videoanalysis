@@ -1,4 +1,4 @@
-#ifndef __INTERNAL_THREAD_H__
+﻿#ifndef __INTERNAL_THREAD_H__
 #define __INTERNAL_THREAD_H__
 
 #include <boost/thread.hpp>
@@ -9,48 +9,51 @@
 
 namespace ocean
 {
-	namespace core
+	namespace ai
 	{
 
-		/**
-		* Virtual class encapsulate boost::thread for use in base class
-		* The child class will acquire the ability to run a single thread,
-		* by reimplementing the virtual function InternalThreadEntry.
-		*/
-
-		class InternalThread
+		namespace core
 		{
-		public:
-			InternalThread();
-			virtual ~InternalThread();
-		public:
+			/**
+			* Virtual class encapsulate boost::thread for use in base class
+			* The child class will acquire the ability to run a single thread,
+			* by reimplementing the virtual function InternalThreadEntry.
+			*/
 
-			//Start() should be called by your subclass
-			void Start();
+			class InternalThread
+			{
 
-		protected:
+			public:
+				InternalThread();
+				virtual ~InternalThread();
 
-			//implement this method in your subclass 
-			//with the code you want your thread to run  
-			virtual void InternalThreadEntry();
+			public:
+				//Start() should be called by your subclass
+				void Start();
 
-			bool must_stop();
+				//Stop() should be called by your subclass
+				void Stop();
 
-		private:
+			protected:
 
-			void entry();
+				//implement this method in your subclass 
+				//with the code you want your thread to run  
+				virtual void InternalThreadEntry();
 
-			void stop();
+				bool must_stop();
 
-			bool is_started() const;
+			private:
 
-		private:
+				void entry();
 
-			boost::shared_ptr<boost::thread> m_thread;
+				bool is_started() const;
 
-		};
+			private:
 
-	}/*core*/
+				boost::shared_ptr<boost::thread> m_thread;
+			};
+		}/*core*/
+	}/*ai*/
 }/*ocean*/
 
 

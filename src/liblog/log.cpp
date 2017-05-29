@@ -112,8 +112,8 @@ namespace ocean
 				/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 				logging::core::get()->add_sink(console_sink);
-				logging::core::get()->add_sink(file_sink);
-				logging::core::get()->add_sink(channel_file_sink);
+				//logging::core::get()->add_sink(file_sink);
+				//logging::core::get()->add_sink(channel_file_sink);
 
 				logging::add_common_attributes();
 				logging::core::get()->add_global_attribute("Scope", attrs::named_scope());

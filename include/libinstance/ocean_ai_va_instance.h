@@ -2,26 +2,31 @@
 #define __OCEAN_AI_VIDEOANALYSIS_INSTANCE_ABSTRACT_H__
 
 
+#include <boost/noncopyable.hpp>
+
 namespace ocean
 {
 	namespace ai
 	{
-		class VideoAnalysisInstance
+		namespace va
 		{
-		public:
-			VideoAnalysisInstance(const int& channel_id, const int& device_id);
-			~VideoAnalysisInstance();
 
-		protected:
+			class VideoAnalysisInstance:public boost::noncopyable
+			{
+			public:
+				VideoAnalysisInstance(const int& channel_id, const int& device_id);
+				virtual ~VideoAnalysisInstance();
 
-			const int m_channel_id;
-			const int m_device_id;
+			protected:
 
-		};
+				const int m_channel_id;
+				const int m_device_id;
+
+			};
 
 
 
-
+		}
 	}/*ai*/
 }/*coean*/
 

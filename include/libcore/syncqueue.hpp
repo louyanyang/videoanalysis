@@ -7,109 +7,111 @@
 
 namespace ocean
 {
-	namespace core
+	namespace ai
 	{
-		template<typename T>
-		class SyncQueue
+		namespace core
 		{
-		public:
-			
-			explicit SyncQueue(const int& max_size = 10)
-				:m_queue(), m_max_size(10)
-			{}
-			~SyncQueue()
-			{}
-
-		public:
-			SyncQueue() = delete;
-			SyncQueue(const SyncQueue&) = delete;
-			SyncQueue& operator = (const SyncQueue&) = delete;
-
-
-		public:
-			void put(const T& new_value)
+			template<typename T>
+			class SyncQueue
 			{
-				boost::unique_lock<boost::mutex> lck(m_mtx);
-				m_cond_p.wait(lck, [this]{return m_queue.size() < m_max_size; });
-				m_queue.push_back(new_value);
-				m_cond_g.notify_one();
-			}
-			bool try_put(const T& new_value)
-			{
-				boost::unique_lock<boost::mutex> lck(m_mtx);
-				if (m_queue.size() >= m_max_size)
-					return false;
-				m_queue.push_back(new_value);
-				m_cond_g.notify_one();
-				return true;
-			}
+			public:
 
-			template<typename Rep,typename Period>
-			bool put_for(const T& new_value)
-			{
-				boost::unique_lock<boost::mutex> lck(m_mtx);
-				if (!m_cond_p.wait_for(lck, boost::chrono::duration<Rep, period>, [this]{m_queue.size() <= m_max_size; }))
-					return false;
-				m_queue.push_back(new_value);
-				m_cond_g.notify_one();
-				return true;
-			}
+				explicit SyncQueue(const int& max_size = 10)
+					:m_queue(), m_max_size(10)
+				{}
+				~SyncQueue()
+				{}
 
-			T get() 
-			{
-				boost::unique_lock<boost::mutex> lck(m_mtx);
-				m_cond_g.wait(lck, [this]{ return !m_queue.empty(); });
-				auto value = std::move(m_queue.front());
-				m_queue.pop_front();
-				m_cond_p.notify_one();
-				return value;
-			}
-
-			bool try_get(T& value)
-			{
-				boost::unique_lock<boost::mutex> lck(m_mtx);
-				if (m_queue.empty())
-					return false;
-				value = std::move(m_queue.front());
-				m_queue.pop_front();
-				m_cond_p.notify_one();
-				return true;
-			}
-
-			template<typename Rep, typename Period>
-			bool get_for(T& value)
-			{
-				boost::unique_lock<boost::mutex> lck(m_mtx);
-				if (!m_cond_g.wait_for(lck, boost::chrono::duration<Rep, period>, [this]{m_queue.size() <= m_max_size; }))
-					return false;
-				value = std::move(m_queue.front());
-				m_cond_p.notify_one();
-				return true;
-			}
-
-			bool empty() const
-			{
-				boost::unique_lock<boost::mutex> lck(m_mtx);
-				return m_queue.empty();
-			}
-
-			size_t size() const
-			{
-				boost::unique_lock<boost::mutex> lck(m_mtx);
-				return m_queue.size();
-			}
-
-	    private:
-			std::list<T> m_queue;
-			const int m_max_size;
-			mutable boost::mutex m_mtx;
-			boost::condition_variable_any m_cond_p;
-			boost::condition_variable_any m_cond_g;
-		};
+			public:
+				SyncQueue() = delete;
+				SyncQueue(const SyncQueue&) = delete;
+				SyncQueue& operator = (const SyncQueue&) = delete;
 
 
+			public:
+				void put(const T& new_value)
+				{
+					boost::unique_lock<boost::mutex> lck(m_mtx);
+					m_cond_p.wait(lck, [this]{return m_queue.size() < m_max_size; });
+					m_queue.push_back(new_value);
+					m_cond_g.notify_one();
+				}
+				bool try_put(const T& new_value)
+				{
+					boost::unique_lock<boost::mutex> lck(m_mtx);
+					if (m_queue.size() >= m_max_size)
+						return false;
+					m_queue.push_back(new_value);
+					m_cond_g.notify_one();
+					return true;
+				}
 
-	}/*core*/
+				template<class Rep, class Period>
+				bool put_for(const T& new_value, const boost::chrono::duration<Rep, Period>& duration)
+				{
+					boost::unique_lock<boost::mutex> lck(m_mtx);
+					if (!m_cond_p.wait_for(lck, duration, [this]{m_queue.size() < m_max_size; }))
+						return false;
+					m_queue.push_back(new_value);
+					m_cond_g.notify_one();
+					return true;
+				}
+
+				void get(T& value)
+				{
+					boost::unique_lock<boost::mutex> lck(m_mtx);
+					m_cond_g.wait(lck, [this]{ return !m_queue.empty(); });
+					value = std::move(m_queue.front());
+					m_queue.pop_front();
+					m_cond_p.notify_one();
+				}
+
+				bool try_get(T& value)
+				{
+					boost::unique_lock<boost::mutex> lck(m_mtx);
+					if (m_queue.empty())
+						return false;
+					value = std::move(m_queue.front());
+					m_queue.pop_front();
+					m_cond_p.notify_one();
+					return true;
+				}
+
+				template<typename Rep, typename Period>
+				bool get_for(T& value, const boost::chrono::duration<Rep, Period>& duration)
+				{
+					boost::unique_lock<boost::mutex> lck(m_mtx);
+					if (m_cond_g.wait_for(lck, duration, [this]{ return m_queue.empty(); }))
+						return false;
+					value = std::move(m_queue.front());
+					m_cond_p.notify_one();
+					return true;
+				}
+
+				bool empty() const
+				{
+					boost::unique_lock<boost::mutex> lck(m_mtx);
+					return m_queue.empty();
+				}
+
+				size_t size() const
+				{
+					boost::unique_lock<boost::mutex> lck(m_mtx);
+					return m_queue.size();
+				}
+
+			private:
+				std::list<T> m_queue;
+				const int m_max_size;
+				mutable boost::mutex m_mtx;
+				boost::condition_variable_any m_cond_p;
+				boost::condition_variable_any m_cond_g;
+			};
+
+
+
+		}/*core*/
+	}/*ai*/
 }/*ocean*/
 
 #endif

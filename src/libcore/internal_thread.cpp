@@ -1,98 +1,87 @@
 #include "libcore/internal_thread.h"
 #include "libcore/syncqueue.hpp"
-
+#include "liblog/log.h"
 #include <opencv2/highgui/highgui.hpp>
 
 
 namespace ocean
 {
-	namespace core
+	namespace ai
 	{
-		InternalThread::InternalThread()
-			:m_thread()
+		namespace core
 		{
-		}
-
-		InternalThread::~InternalThread()
-		{
-			stop();
-		}
-
-		bool InternalThread::is_started() const
-		{
-			return m_thread && m_thread->joinable();
-		}
-
-		bool InternalThread::must_stop()
-		{
-			return m_thread && m_thread->interruption_requested();
-		}
-
-		void InternalThread::Start()
-		{
-			if (is_started())
-				return;
-
-			try
+			InternalThread::InternalThread()
+				:m_thread()
 			{
-				m_thread = boost::make_shared<boost::thread>(&InternalThread::entry, this);
 			}
-			catch (boost::thread_exception& e)
-			{
-				std::cout << e.what()<<std::endl;
-			}
-			catch (std::exception& e)
-			{
-				std::cout << e.what() << std::endl;
-			}		
-		}
 
-		void InternalThread::stop()
-		{
-			if (is_started())
+			InternalThread::~InternalThread()
 			{
-				m_thread->interrupt();
+				Stop();
+			}
+
+			bool InternalThread::is_started() const
+			{
+				return m_thread && m_thread->joinable();
+			}
+
+			bool InternalThread::must_stop()
+			{
+				return m_thread && m_thread->interruption_requested();
+			}
+
+			void InternalThread::Start()
+			{
+				if (is_started())
+					return;
 
 				try
 				{
-					if (m_thread->joinable())
-						m_thread->join();
+					m_thread = boost::make_shared<boost::thread>(&InternalThread::entry,this);
 				}
-				catch (boost::thread_interrupted &)
+				catch (boost::thread_exception& e)
 				{
-					//std::cout << "thread interrupt!" << std::endl;
+					LOG_FATAL << e.what();
 				}
-				catch (std::exception &e)
+				catch (std::exception& e)
 				{
-					std::cout << e.what()<<std::endl;
+					LOG_FATAL << e.what();
 				}
 			}
 
-		}
+			void InternalThread::Stop()
+			{
+				if (is_started())
+				{
+					m_thread->interrupt();
 
+					try
+					{
+						if (m_thread->joinable())
+							m_thread->join();
+					}
+					catch (boost::thread_interrupted &)
+					{
+						//std::cout << "thread interrupt!" << std::endl;
+					}
+					catch (std::exception &e)
+					{
+						LOG_FATAL << e.what();
+					}
+				}
 
+			}
 
-		void InternalThread::entry()
-		{
-			InternalThreadEntry();
-		}
+			void InternalThread::entry()
+			{
+				InternalThreadEntry();
+			}
 
-		void InternalThread::InternalThreadEntry()
-		{
-			//while (!must_stop())
-			//{
-			//	std::cout << m_thread->get_id() << std::endl;
-			//auto img = m_queue.get();
-			///*cv::Mat img;
-			//if(!m_queue.try_get(img))
-			//    continue;*/
-			//cv::imshow("test1", img);
-			//cv::waitKey(1);
-			//}
-			//int xx = 0;
-		}
+			void InternalThread::InternalThreadEntry()
+			{
+			}
 
-
-	}/*core*/
+		}/*core*/
+	}/*ai*/
 }/*ocean*/
 

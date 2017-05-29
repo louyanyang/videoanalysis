@@ -6,13 +6,18 @@ namespace ocean
 {
 	namespace ai
 	{
-		VideoAnalysisInstance::VideoAnalysisInstance(const int& channel_id, const int& device_id)
-			:m_channel_id(channel_id), m_device_id(device_id)
+		namespace va
 		{
-		}
+			VideoAnalysisInstance::VideoAnalysisInstance(const int& channel_id, const int& device_id)
+				:m_channel_id(channel_id), m_device_id(device_id)
+			{
+			}
 
-		VideoAnalysisInstance::~VideoAnalysisInstance()
-		{}
+			VideoAnalysisInstance::~VideoAnalysisInstance()
+			{}
+
+		}
+		
 
 	}
 }

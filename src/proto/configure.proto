@@ -1,0 +1,14 @@
+syntax = "proto2";
+
+package ocean.ai.va;
+
+
+message RunTimeParams
+{
+    optional string log_file = 1;
+	optional int32 circular_buffer_size = 2[default = 100];
+	optional int32 syncqueue_size = 3[default = 10000];
+	optional int32 detect_batch_size = 4[default = 1];
+	optional int32 object_max_num = 5[default = 32];
+	optional int32 block_interval = 6[default = 5];
+}

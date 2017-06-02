@@ -19,6 +19,14 @@ namespace ocean
 
 			}
 
+
+			STATUS VideoAnalysisStructure::AsyncRun(const boost::uint64_t time_stamp, const core::vMat& img, const VideoAnalysisResultCallback& callback)
+			{
+			    
+			}
+
+
+
 		}
 	}/*ai*/
 }/*ocean*/

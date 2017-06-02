@@ -23,8 +23,12 @@ namespace ocean
 
 			public:
 
-				bool AddTaskSession(const std::string& task_id);
-				void RemoveTaskSession(const std::string& task_id);
+				bool AddTaskSession(const int& channel_id,const int& device_id,const TaskType& task_type);
+				void RemoveTaskSession(const int& channel_id,const int& device_id,const TaskType& task_type);
+
+			private:
+
+				static std::string 	make_task_id(const int& channel_id, const int& device_id, const TaskType& task_type);
 
 			public:
 				boost::mutex m_task_mtx;
@@ -40,7 +44,6 @@ namespace ocean
 
 				typedef boost::shared_ptr<VideoAnalysisInstance> instance_type;
 				typedef boost::shared_ptr<TaskZoom> taskzoom_type;
-				//typedef boost::weak_ptr<TaskZoom> taskzoom_type;
 
 			public:
 				Analyzer(const int& channel_id, const int& device_id, instance_type instance,taskzoom_type taskzoom,const VideoAnalysisResultCallback& callback, const TaskType& task_type);
@@ -48,10 +51,6 @@ namespace ocean
 
 			public:
 				STATUS AsyncRun(const boost::uint64_t& time_stamp, const cv::gpu::GpuMat& frame, const VideoAnalysisResultCallback& callback);
-
-			private:
-
-				std::string make_task_id(const int& channel_id,const int& device_id,const TaskType& task_type);
 
 			private:
 
@@ -89,7 +88,6 @@ namespace ocean
 					const InitParams& init_params,
 					const VideoAnalysisResultCallback& callback);
 				
-				//taskzoom_type GetTaskZoom();
 
 			private:
 				AnalyzerScheduler();

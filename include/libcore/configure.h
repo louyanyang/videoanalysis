@@ -23,7 +23,7 @@ namespace ocean
 
 				runtime_params_type GetRunTimeParams();
 
-				std::string Debug_toString();
+				std::string Configurations_toString();
 
 			public:
 				static configure_type Instance();

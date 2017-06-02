@@ -91,12 +91,11 @@ namespace ocean
 			}
 
 
-			std::string Configure::Debug_toString()
+			std::string Configure::Configurations_toString()
 			{
 				std::string runtime_params_info = m_runtime_params->DebugString();
 
-				while (runtime_params_info.find("\n") != runtime_params_info.npos)
-					runtime_params_info.replace(runtime_params_info.find("\n"), 1, " | ");
+				runtime_params_info.replace(runtime_params_info.begin(), runtime_params_info.end(), "\n", " | ");
 				
 				return runtime_params_info;
 			}

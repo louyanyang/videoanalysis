@@ -12,9 +12,12 @@ namespace ocean
 		namespace core
 		{
 
-			class TaskCondition
+			class TaskRunCondition
 			{
-
+			public:
+				TaskRunCondition();
+				~TaskRunCondition();
+			private:
 
 			};
 

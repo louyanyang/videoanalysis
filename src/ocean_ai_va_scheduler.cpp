@@ -25,49 +25,31 @@ namespace ocean
 			{
 			}
 
-			bool TaskZoom::AddTaskSession(const std::string& task_id)
+			bool TaskZoom::AddTaskSession(const int& channel_id,const int& device_id,const TaskType& task_type)
 			{
 				boost::unique_lock<boost::mutex> lck(m_task_mtx);
+
+				std::string task_id = make_task_id(channel_id, device_id, task_type);
 				if (m_task_set.find(task_id) != m_task_set.end())
 					return false;
 				m_task_set.insert(task_id);
 				return true;
 			}
 
-			void TaskZoom::RemoveTaskSession(const std::string& task_id)
+			void TaskZoom::RemoveTaskSession(const int& channel_id,const int& device_id,const TaskType& task_type)
 			{
-				boost::unique_lock<boost::mutex> lck(m_task_mtx);				
+				boost::unique_lock<boost::mutex> lck(m_task_mtx);	
+				std::string task_id = make_task_id(channel_id, device_id, task_type);
+				if (m_task_set.find(task_id) == m_task_set.end())
+				{
+					LOG_ERROR << task_id << " task already not exists";
+					return;
+				}
 				m_task_set.erase(task_id);	
 			}
 
 
-			/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
-			Analyzer::Analyzer(const int& channel_id, const int& device_id, instance_type instance,taskzoom_type taskzoom,const VideoAnalysisResultCallback& callback, const TaskType& task_type)
-				:m_channel_id(channel_id), m_device_id(device_id), m_callback(callback), m_instance(instance), m_task_type(task_type), m_taskzoom(taskzoom)
-			{
-
-				std::string task_id = make_task_id(m_channel_id, m_device_id, m_task_type);
-
-				if (!m_taskzoom->AddTaskSession(task_id))
-					throw std::logic_error("task already exist!");
-
-			}
-
-			Analyzer::~Analyzer()
-			{ 
-				std::string task_id = make_task_id(m_channel_id, m_device_id, m_task_type);
-				m_taskzoom->RemoveTaskSession(task_id);
-			}
-
-			STATUS Analyzer::AsyncRun(const boost::uint64_t& time_stamp, const cv::gpu::GpuMat& frame, const VideoAnalysisResultCallback& callback)
-			{
-
-
-				return STATUS::SUCCESS;
-			}
-
-			std::string Analyzer::make_task_id(const int& channel_id, const int& device_id, const TaskType& task_type)
+			std::string TaskZoom::make_task_id(const int& channel_id, const int& device_id, const TaskType& task_type)
 			{
 				std::stringstream session_str;
 				session_str << "channel_" << channel_id << "_device_" << device_id;
@@ -91,6 +73,32 @@ namespace ocean
 			}
 
 
+			/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+			Analyzer::Analyzer(const int& channel_id, const int& device_id, instance_type instance,taskzoom_type taskzoom,const VideoAnalysisResultCallback& callback, const TaskType& task_type)
+				:m_channel_id(channel_id), m_device_id(device_id), m_callback(callback), m_instance(instance), m_task_type(task_type), m_taskzoom(taskzoom)
+			{
+
+				if (!m_taskzoom->AddTaskSession(m_channel_id,m_device_id,m_task_type))
+					throw std::logic_error("task already exist!");
+
+			}
+
+			Analyzer::~Analyzer()
+			{ 
+				m_taskzoom->RemoveTaskSession(m_channel_id,m_device_id,m_task_type);
+			}
+
+			STATUS Analyzer::AsyncRun(const boost::uint64_t& time_stamp, const cv::gpu::GpuMat& frame, const VideoAnalysisResultCallback& callback)
+			{
+
+
+				return STATUS::SUCCESS;
+			}
+
+			
+
+
 			/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 			boost::shared_ptr<AnalyzerScheduler> AnalyzerScheduler::instance;
@@ -110,13 +118,46 @@ namespace ocean
 				const InitParams& init_params,
 				const VideoAnalysisResultCallback& callback)
 			{
+				try
+				{
+					instance_type instance = make_instance(channel_id, device_id, init_params);
 
-				instance_type instance = make_instance(channel_id, device_id, init_params);
+					if (!instance)
+					{
+						LOG_INFO << "Channel_id: " << channel_id << " | "
+							<< "Device_id: " << device_id
+							<< "  create instance error!";
+						return nullptr;
 
-				if (!instance)
-					throw std::logic_error("create instance error!");
+					}
 
-			    return boost::make_shared<Analyzer>(channel_id, device_id, instance,m_taskzoom,callback,init_params.task_type);
+					return boost::make_shared<Analyzer>(channel_id, device_id, instance, m_taskzoom, callback, init_params.task_type);
+				}
+				catch (cv::Exception &e)
+				{
+					LOG_INFO << "Channel_id: " << channel_id << " | "
+						<< "Device_id: " << device_id
+						<< e.what();
+					return nullptr;
+				}
+
+				catch (std::exception &e)
+				{
+					LOG_INFO << "Channel_id: " << channel_id << " | "
+						<< "Device_id: " << device_id
+						<< e.what();
+					return nullptr;
+					
+				}
+				
+				catch (...)
+				{
+
+					LOG_INFO << "Channel_id: " << channel_id << " | "
+						<< "Device_id: " << device_id
+						<< "unknown error!";
+					return nullptr;
+				}
 
 			}
 

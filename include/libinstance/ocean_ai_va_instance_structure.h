@@ -3,6 +3,8 @@
 
 #include "libinstance/ocean_ai_va_instance.h"
 #include "ocean_ai_va_common.h"
+#include "libcore/vMat.h"
+#include "libcore/buffers_manager.h"
 
 
 
@@ -18,7 +20,14 @@ namespace ocean
 				VideoAnalysisStructure(const int& channel_id, const int& device_id, const InitParams& init_params);
 				virtual ~VideoAnalysisStructure();
 
+			public:
 
+				STATUS AsyncRun(const boost::uint64_t time_stamp, const core::vMat& img, const VideoAnalysisResultCallback& callback);
+
+			private:
+
+				core::BuffersManager m_buffers;
+				bool m_buffers_initialized;
 
 			};
 
